@@ -1,4 +1,4 @@
-name: teller-subgraph-health-monitor
+name: teller-loan-health-monitor
 
 # Worker service - runs continuously in the background
 workers:
@@ -10,7 +10,7 @@ workers:
     github:
       branch: master
       deploy_on_push: true
-      repo: teller-protocol/teller-subgraph-health-monitor
+      repo: teller-protocol/teller-loan-health-monitor
 
     # Environment variables (set actual values in App Platform dashboard)
     envs:
