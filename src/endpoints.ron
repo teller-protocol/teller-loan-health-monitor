@@ -20,7 +20,7 @@
 		(
 			name: "TheGraph TellerV2 Base",
 
-			url:"https://gateway.thegraph.com/api/subgraphs/id/ArZjkaosc5rmBoYqprFWomvnjKSFMGkPFD7yuaZGuqQo",
+			url:"https://gateway.thegraph.com/api/subgraphs/id/8jSq7mzq9HEiJEcAZfvrTT4wYk59oMxm82xUpcVBzryF",
 
 			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
 
