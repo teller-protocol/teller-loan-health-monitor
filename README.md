@@ -1,0 +1,1 @@
+https://github.com/teller-protocol/subgraph-endpoints-middleware/blob/main/constants/subgraphEndpoints.js

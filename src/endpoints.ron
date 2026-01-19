@@ -1,0 +1,150 @@
+(
+
+	endpoints: [
+
+
+
+		(
+			name: "TheGraph TellerV2 Mainnet",
+
+			url:"https://gateway.thegraph.com/api/subgraphs/id/4JruhWH1ZdwvUuMg2xCmtnZQYYHvmEq6cmTcZkpM6pW",
+
+			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
+
+
+		 
+		),
+
+
+		(
+			name: "TheGraph TellerV2 Base",
+
+			url:"https://gateway.thegraph.com/api/subgraphs/id/ArZjkaosc5rmBoYqprFWomvnjKSFMGkPFD7yuaZGuqQo",
+
+			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
+
+ 
+		),
+
+		(
+			name: "TheGraph TellerV2 Arbitrum",
+
+			url:"https://gateway.thegraph.com/api/subgraphs/id/F2Cgx4q4ATiopuZ13nr1EMKmZXwfAdevF3EujqfayK7a",
+
+			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
+
+ 
+		),
+
+		(
+			name: "TheGraph TellerV2 Polygon",
+
+			url:"https://gateway.thegraph.com/api/subgraphs/id/8bjHtQZ9PZUMQAbCGJw5Zx2SbZZY2LQz8WH3rURzN5do",
+
+			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
+
+ 
+		),
+
+  
+/*
+
+
+		(	
+		    name: "Chainstack PoolV1 Mainnet",
+			url: "https://ethereum-mainnet.graph-eu.p2pify.com/8614c21e12ec31df6366661570265a0b/sgr-520-422-765",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+
+		(	
+		    name: "Chainstack PoolV1 Arbitrum",
+			url: "https://arbitrum-mainnet.graph-eu.p2pify.com/931a3372bc471da17f3c37b51c71103f/sgr-821-576-009",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+ 
+		(	
+		    name: "Chainstack PoolV1 Base",
+			url: "https://base-mainnet.graph-eu.p2pify.com/6597d6ea90c8f7590fa0d7ca2437b00a/sgr-204-614-601",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+
+
+		(	
+		    name: "Chainstack PoolV1 Polygon",
+			url: "https://polygon-mainnet.graph-eu.p2pify.com/fb4e3d5be61df3d47d5e6031477a3cbd/sgr-928-637-070",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+
+
+		(	
+		    name: "Chainstack PoolV2 Mainnet",
+			url: "https://arbitrum-mainnet.graph-eu.p2pify.com/6d8e738c9fe322e8b5b593f9bcc907cb/sgr-575-510-903",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+		(	
+		    name: "Chainstack PoolV2 Base",
+			url: "https://base-mainnet.graph-eu.p2pify.com/ee28001bf0cbdbea2ef8eced485e2e28/sgr-955-405-762",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+		(	
+		    name: "Chainstack PoolV2 Arbitrum",
+			url: "https://arbitrum-mainnet.graph-eu.p2pify.com/6d8e738c9fe322e8b5b593f9bcc907cb/sgr-575-510-903",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+
+
+		 (	
+		    name: "Chainstack PoolV2 Polygon",
+			url: "https://polygon-mainnet.graph-eu.p2pify.com/fbde3dc4bd40cb85f7a2888c29656dc1/sgr-999-212-576",
+
+			auth_key: Some("CHAINSTACK_AUTH_TOKEN"), 
+
+			body: "{ _meta { block { number hash } } }",  
+
+		),
+
+
+*/
+
+		 
+
+
+
+
+	]
+)

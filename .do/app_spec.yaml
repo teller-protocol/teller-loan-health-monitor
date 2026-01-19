@@ -1,0 +1,43 @@
+name: teller-subgraph-health-monitor
+
+# Worker service - runs continuously in the background
+workers:
+  - name: health-monitor
+    # Use Dockerfile for build
+    dockerfile_path: Dockerfile
+
+    # Source configuration
+    github:
+      branch: master
+      deploy_on_push: true
+      repo: teller-protocol/teller-subgraph-health-monitor
+
+    # Environment variables (set actual values in App Platform dashboard)
+    envs:
+      - key: ALCHEMY_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: SLACK_CLIENT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: SLACK_CLIENT_ID
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: SLACK_APP_ID
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: SLACK_OAUTH_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+
+    # Instance configuration
+    instance_count: 1
+    instance_size_slug: basic-xxs
+
+    # Health checks disabled for worker
+    health_check:
+      enabled: false

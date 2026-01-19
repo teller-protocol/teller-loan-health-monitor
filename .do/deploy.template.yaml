@@ -1,0 +1,10 @@
+spec:
+  name: teller-subgraph-health-monitor
+  workers:
+  - dockerfile_path: Dockerfile
+    git:
+      branch: master
+      repo_clone_url: https://github.com/teller-protocol/teller-subgraph-health-monitor
+    name: subgraph-health-monitor
+    instance_count: 1
+    instance_size_slug: basic-xxs
