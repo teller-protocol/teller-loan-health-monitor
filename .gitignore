@@ -1,2 +1,4 @@
 /target
 .env
+alerted_bids.txt
+.claude/

@@ -7,6 +7,8 @@ use chrono_tz::US::Eastern;
 use serde::Deserialize;
 use std::fs;
 use std::sync::{Arc, Mutex};
+use std::collections::HashSet;
+use std::io::{BufRead, BufReader, Write};
 
 pub mod slack;
 
@@ -19,7 +21,7 @@ struct EndpointConfig {
 struct Endpoint {
     name: String, 
     url: String,
-  
+    chain_id: i32, 
     auth_key: Option<String>,
 } 
 
@@ -30,9 +32,37 @@ struct MonitorConfig {
 
 }
 
-const ONE_HOUR:u64 = 3600 ; 
+const ONE_HOUR:u64 = 3600 ;
 
-const ONE_DAY:u64 = 86400; 
+const ONE_DAY:u64 = 86400;
+
+const ALERTED_BIDS_FILE: &str = "alerted_bids.txt";
+
+fn load_alerted_bids() -> HashSet<String> {
+    let mut alerted = HashSet::new();
+    if let Ok(file) = fs::File::open(ALERTED_BIDS_FILE) {
+        let reader = BufReader::new(file);
+        for line in reader.lines().flatten() {
+            if !line.trim().is_empty() {
+                alerted.insert(line.trim().to_string());
+            }
+        }
+    }
+    alerted
+}
+
+fn save_alerted_bid(chain_id: i32, bid_id: &str) {
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(ALERTED_BIDS_FILE)
+        .expect("Failed to open alerted bids file");
+    writeln!(file, "{}:{}", chain_id, bid_id).expect("Failed to write to alerted bids file");
+}
+
+fn make_bid_key(chain_id: i32, bid_id: &str) -> String {
+    format!("{}:{}", chain_id, bid_id)
+} 
 
 
 impl MonitorConfig {
@@ -99,6 +129,8 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
     if let Some(endpoint_data) = config.endpoints.get(endpoint_index) {
         println!("Querying endpoint {}: {}", endpoint_index, endpoint_data.url);
 
+        let chain_id = endpoint_data.chain_id; 
+
         // Get auth token from environment if auth_key is specified
         let auth_token = endpoint_data.auth_key.as_ref().and_then(|key| {
             let env_var_name = format!("{}", key );
@@ -124,7 +156,7 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
                 nextDueDate_gt: "{}",
                 status: "Accepted"
               }}
-              first: 1000
+              first: 5
             ) {{
               id
               bidId
@@ -177,25 +209,35 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
                             if bids.is_empty() {
                                 println!("No overdue bids found.");
                             } else {
-                                println!("Found {} overdue bid(s), sending alerts...", bids.len());
+                                println!("Found {} overdue bid(s), checking for new alerts...", bids.len());
 
+                                let alerted_bids = load_alerted_bids();
                                 let now_utc: DateTime<Utc> = Utc::now();
                                 let now_ny = now_utc.with_timezone(&Eastern);
                                 let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
 
                                 for bid in bids {
                                     let bid_id = bid.get("bidId").and_then(|v| v.as_str()).unwrap_or("unknown");
+                                    let bid_key = make_bid_key(chain_id, bid_id);
+
+                                    // Skip if already alerted
+                                    if alerted_bids.contains(&bid_key) {
+                                        println!("Bid {} on chain {} already alerted, skipping.", bid_id, chain_id);
+                                        continue;
+                                    }
+
                                     let borrower = bid.get("borrowerAddress").and_then(|v| v.as_str()).unwrap_or("unknown");
                                     let principal = bid.get("principal").and_then(|v| v.as_str()).unwrap_or("0");
                                     let next_due = bid.get("nextDueDate").and_then(|v| v.as_str()).unwrap_or("unknown");
                                     let status = bid.get("status").and_then(|v| v.as_str()).unwrap_or("unknown");
 
                                     let message = format!(
-                                        "🚨 Overdue Loan Alert!\nTimestamp: {}\nBid ID: {}\nBorrower: {}\nPrincipal: {}\nNext Due Date: {}\nStatus: {}",
-                                        timestamp, bid_id, borrower, principal, next_due, status
+                                        "🚨 Overdue Loan Alert!\nTimestamp: {}\nChain ID: {}\nBid ID: {}\nBorrower: {}\nPrincipal: {}\nNext Due Date: {}\nStatus: {}",
+                                        timestamp, chain_id, bid_id, borrower, principal, next_due, status
                                     );
 
                                     send_slack_warning(&message).await;
+                                    save_alerted_bid(chain_id, bid_id);
                                 }
                             }
                         }

@@ -11,6 +11,7 @@
 
 			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
 
+			chain_id: 1
 
 		 
 		),
@@ -23,7 +24,8 @@
 
 			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
 
- 
+ 	    	chain_id: 8453
+
 		),
 
 		(
@@ -33,7 +35,8 @@
 
 			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
 
- 
+ 	
+ 	    	chain_id: 42161
 		),
 
 		(
@@ -43,7 +46,7 @@
 
 			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
 
- 
+ 			chain_id: 137
 		),
 
   
