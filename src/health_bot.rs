@@ -62,6 +62,29 @@ fn save_alerted_bid(chain_id: i32, bid_id: &str) {
 
 fn make_bid_key(chain_id: i32, bid_id: &str) -> String {
     format!("{}:{}", chain_id, bid_id)
+}
+
+fn format_bid_alert(bid: &serde_json::Value, chain_id: i32, timestamp: &str) -> String {
+    let bid_id = bid.get("bidId").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let borrower = bid.get("borrowerAddress").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let principal_raw = bid.get("principal").and_then(|v| v.as_str()).unwrap_or("0");
+    let lending_token_obj = bid.get("lendingToken");
+    let lending_token = lending_token_obj
+        .and_then(|v| v.get("symbol"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    let decimals = lending_token_obj
+        .and_then(|v| v.get("decimals"))
+        .and_then(|v| v.as_u64().or_else(|| v.as_str().and_then(|s| s.parse().ok())))
+        .unwrap_or(0) as u32;
+    let principal: f64 = principal_raw.parse().unwrap_or(0.0) / 10_f64.powi(decimals as i32);
+    let next_due = bid.get("nextDueDate").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let status = bid.get("status").and_then(|v| v.as_str()).unwrap_or("unknown");
+
+    format!(
+        "🚨 Overdue Loan Alert!\nTimestamp: {}\nChain ID: {}\nBid ID: {}\nBorrower: {}\nPrincipal Token: {}\nPrincipal Amount: {:.2}\nNext Due Date: {}\nStatus: {}",
+        timestamp, chain_id, bid_id, borrower, lending_token, principal, next_due, status
+    )
 } 
 
 
@@ -164,6 +187,11 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
               borrowerAddress
               status
               principal
+              lendingToken {{
+                id
+                symbol
+                decimals
+              }}
             }}
           }}
           "#, current_timestamp, last_week);   
@@ -226,15 +254,7 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
                                         continue;
                                     }
 
-                                    let borrower = bid.get("borrowerAddress").and_then(|v| v.as_str()).unwrap_or("unknown");
-                                    let principal = bid.get("principal").and_then(|v| v.as_str()).unwrap_or("0");
-                                    let next_due = bid.get("nextDueDate").and_then(|v| v.as_str()).unwrap_or("unknown");
-                                    let status = bid.get("status").and_then(|v| v.as_str()).unwrap_or("unknown");
-
-                                    let message = format!(
-                                        "🚨 Overdue Loan Alert!\nTimestamp: {}\nChain ID: {}\nBid ID: {}\nBorrower: {}\nPrincipal: {}\nNext Due Date: {}\nStatus: {}",
-                                        timestamp, chain_id, bid_id, borrower, principal, next_due, status
-                                    );
+                                    let message = format_bid_alert(bid, chain_id, &timestamp);
 
                                     send_slack_warning(&message).await;
                                     save_alerted_bid(chain_id, bid_id);
@@ -408,3 +428,68 @@ fn parse_cursor_response(response: &str) -> Result<U256, Box<dyn std::error::Err
     Err("No cursors found or invalid response format".into())
 }
 */
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_bid_alert_with_usdc() {
+        let bid = serde_json::json!({
+            "bidId": "12345",
+            "borrowerAddress": "0xabc123def456",
+            "principal": "1000000",
+            "lendingToken": {
+                "id": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "symbol": "USDC",
+                "decimals": 6
+            },
+            "nextDueDate": "1704067200",
+            "status": "Accepted"
+        });
+
+        let message = format_bid_alert(&bid, 1, "2024-01-01 12:00:00 EST");
+
+        assert!(message.contains("🚨 Overdue Loan Alert!"));
+        assert!(message.contains("Chain ID: 1"));
+        assert!(message.contains("Bid ID: 12345"));
+        assert!(message.contains("Borrower: 0xabc123def456"));
+        assert!(message.contains("Principal Token: USDC"));
+        assert!(message.contains("Principal Amount: 1.00"));
+        assert!(message.contains("Status: Accepted"));
+    }
+
+    #[test]
+    fn test_format_bid_alert_with_18_decimals() {
+        let bid = serde_json::json!({
+            "bidId": "99999",
+            "borrowerAddress": "0xdeadbeef",
+            "principal": "5000000000000000000",
+            "lendingToken": {
+                "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                "symbol": "WETH",
+                "decimals": 18
+            },
+            "nextDueDate": "1704153600",
+            "status": "Accepted"
+        });
+
+        let message = format_bid_alert(&bid, 137, "2024-01-02 12:00:00 EST");
+
+        assert!(message.contains("Chain ID: 137"));
+        assert!(message.contains("Principal Token: WETH"));
+        assert!(message.contains("Principal Amount: 5.00"));
+    }
+
+    #[test]
+    fn test_format_bid_alert_with_missing_fields() {
+        let bid = serde_json::json!({});
+
+        let message = format_bid_alert(&bid, 1, "2024-01-01 12:00:00 EST");
+
+        assert!(message.contains("Bid ID: unknown"));
+        assert!(message.contains("Borrower: unknown"));
+        assert!(message.contains("Principal Token: unknown"));
+        assert!(message.contains("Principal Amount: 0.00"));
+    }
+}
