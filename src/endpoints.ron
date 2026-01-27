@@ -49,6 +49,32 @@
  			chain_id: 137
 		),
 
+
+
+
+		(
+			name: "GoldSky TellerV2 Katana",
+
+			url:"https://api.goldsky.com/api/private/project_cme01oezy1dwd01um5nile55y/subgraphs/teller-v2-katana/0.4.21.5/gn",
+
+			auth_key:Some("GOLDSKY_AUTH_TOKEN"),
+
+ 			chain_id: 747474
+		),
+
+
+
+
+		(
+			name: "GoldSky TellerV2 HyperEVM",
+
+			url:"https://api.goldsky.com/api/private/project_cme01oezy1dwd01um5nile55y/subgraphs/teller-v2-hyperevm/0.4.21.5/gn",
+
+			auth_key:Some("GOLDSKY_AUTH_TOKEN"),
+
+ 			chain_id: 999
+		),
+
   
 /*
 
