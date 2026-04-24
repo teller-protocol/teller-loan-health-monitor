@@ -217,17 +217,20 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
                     eprintln!("✗ GraphQL query returned errors for endpoint: {}", endpoint_data.url);
                     eprintln!("Response: {}", response);
 
-                    // Get current timestamp in New York time
-                    let now_utc: DateTime<Utc> = Utc::now();
-                    let now_ny = now_utc.with_timezone(&Eastern);
-                    let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
+                    // Polygon GraphQL errors are silenced
+                    if chain_id != 137 {
+                        // Get current timestamp in New York time
+                        let now_utc: DateTime<Utc> = Utc::now();
+                        let now_ny = now_utc.with_timezone(&Eastern);
+                        let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
 
-                    let message = format!(
-                        "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
-                        timestamp, endpoint_data.name, endpoint_data.url, response
-                    );
+                        let message = format!(
+                            "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
+                            timestamp, endpoint_data.name, endpoint_data.url, response
+                        );
 
-                    send_slack_warning(&message).await;
+                        send_slack_warning(&message).await;
+                    }
                 } else {
                     println!("✓ Successfully queried endpoint: {}", endpoint_data.url);
 
@@ -267,17 +270,20 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
             Err(e) => {
                 eprintln!("✗ Failed to query endpoint {}: {}", endpoint_data.url, e);
 
-                // Get current timestamp in New York time
-                let now_utc: DateTime<Utc> = Utc::now();
-                let now_ny = now_utc.with_timezone(&Eastern);
-                let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
+                // Polygon GraphQL errors are silenced
+                if chain_id != 137 {
+                    // Get current timestamp in New York time
+                    let now_utc: DateTime<Utc> = Utc::now();
+                    let now_ny = now_utc.with_timezone(&Eastern);
+                    let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
 
-                let message = format!(
-                    "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
-                    timestamp, endpoint_data.name,  endpoint_data.url, e
-                );
+                    let message = format!(
+                        "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
+                        timestamp, endpoint_data.name,  endpoint_data.url, e
+                    );
 
-                send_slack_warning(&message).await;
+                    send_slack_warning(&message).await;
+                }
             }
         }
     }
