@@ -19,10 +19,12 @@ struct EndpointConfig {
 
 #[derive(Debug, Deserialize)]
 struct Endpoint {
-    name: String, 
+    name: String,
     url: String,
-    chain_id: i32, 
+    chain_id: i32,
     auth_key: Option<String>,
+    #[serde(default)]
+    disabled: bool,
 } 
 
 #[derive(Debug, Clone, Default )]
@@ -150,9 +152,12 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
     let endpoint_index = endpoint_config.lock().unwrap().get_monitor_index() .clone() ;
 
     if let Some(endpoint_data) = config.endpoints.get(endpoint_index) {
+        if endpoint_data.disabled {
+            println!("Skipping disabled endpoint {}: {}", endpoint_index, endpoint_data.url);
+        } else {
         println!("Querying endpoint {}: {}", endpoint_index, endpoint_data.url);
 
-        let chain_id = endpoint_data.chain_id; 
+        let chain_id = endpoint_data.chain_id;
 
         // Get auth token from environment if auth_key is specified
         let auth_token = endpoint_data.auth_key.as_ref().and_then(|key| {
@@ -217,20 +222,17 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
                     eprintln!("✗ GraphQL query returned errors for endpoint: {}", endpoint_data.url);
                     eprintln!("Response: {}", response);
 
-                    // Polygon GraphQL errors are silenced
-                    if chain_id != 137 {
-                        // Get current timestamp in New York time
-                        let now_utc: DateTime<Utc> = Utc::now();
-                        let now_ny = now_utc.with_timezone(&Eastern);
-                        let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
+                    // Get current timestamp in New York time
+                    let now_utc: DateTime<Utc> = Utc::now();
+                    let now_ny = now_utc.with_timezone(&Eastern);
+                    let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
 
-                        let message = format!(
-                            "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
-                            timestamp, endpoint_data.name, endpoint_data.url, response
-                        );
+                    let message = format!(
+                        "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
+                        timestamp, endpoint_data.name, endpoint_data.url, response
+                    );
 
-                        send_slack_warning(&message).await;
-                    }
+                    send_slack_warning(&message).await;
                 } else {
                     println!("✓ Successfully queried endpoint: {}", endpoint_data.url);
 
@@ -270,21 +272,19 @@ async fn pulse_monitor(endpoint_config: Arc< Mutex<  MonitorConfig> > ) {
             Err(e) => {
                 eprintln!("✗ Failed to query endpoint {}: {}", endpoint_data.url, e);
 
-                // Polygon GraphQL errors are silenced
-                if chain_id != 137 {
-                    // Get current timestamp in New York time
-                    let now_utc: DateTime<Utc> = Utc::now();
-                    let now_ny = now_utc.with_timezone(&Eastern);
-                    let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
+                // Get current timestamp in New York time
+                let now_utc: DateTime<Utc> = Utc::now();
+                let now_ny = now_utc.with_timezone(&Eastern);
+                let timestamp = now_ny.format("%Y-%m-%d %H:%M:%S %Z").to_string();
 
-                    let message = format!(
-                        "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
-                        timestamp, endpoint_data.name,  endpoint_data.url, e
-                    );
+                let message = format!(
+                    "⚠️ GraphQL Endpoint Failed!\nTimestamp: {}\nEndpoint: {} {}\nError: {}",
+                    timestamp, endpoint_data.name,  endpoint_data.url, e
+                );
 
-                    send_slack_warning(&message).await;
-                }
+                send_slack_warning(&message).await;
             }
+        }
         }
     }
 

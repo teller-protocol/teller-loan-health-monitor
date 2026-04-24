@@ -46,7 +46,9 @@
 
 			auth_key:Some("THEGRAPH_AUTH_TOKEN"),
 
- 			chain_id: 137
+ 			chain_id: 137,
+
+			disabled: true,
 		),
 
 
